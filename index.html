@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虾看看 · QQ社交聚合平台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0F0F1A',
+                        surface: '#16162A',
+                        muted: '#2A2A3E',
+                        accent: '#00D9A5',
+                        accentSoft: 'rgba(0, 217, 165, 0.1)',
+                        accentPurple: '#8B7CF6',
+                        accentPink: '#F472B6',
+                        textPrimary: '#FFFFFF',
+                        textSecondary: 'rgba(255, 255, 255, 0.6)',
+                        textMuted: 'rgba(255, 255, 255, 0.4)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'Inter', system-ui, sans-serif; }
+        
+        body {
+            background: linear-gradient(135deg, #0F0F1A 0%, #1A1A2E 100%);
+            min-height: 100vh;
+        }
+        
+        .card {
+            background: rgba(22, 22, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card:hover {
+            background: rgba(22, 22, 42, 0.8);
+            border-color: rgba(0, 217, 165, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(22, 22, 42, 0.8) 0%, rgba(42, 42, 62, 0.4) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00D9A5, #8B7CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(0, 217, 165, 0.15), rgba(139, 124, 246, 0.15));
+            border: 1px solid rgba(0, 217, 165, 0.3);
+            color: #00D9A5;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(0, 217, 165, 0.25), rgba(139, 124, 246, 0.25));
+            border-color: rgba(0, 217, 165, 0.5);
+            transform: scale(0.98);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: scale(0.98);
+        }
+        
+        .toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: rgba(22, 22, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 217, 165, 0.3);
+            border-radius: 12px;
+            padding: 16px 24px;
+            z-index: 1000;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .toast-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00D9A5, #8B7CF6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+        
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, #00D9A5, #8B7CF6);
+            border-radius: 2px;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .avatar-1 { background: linear-gradient(135deg, #00D9A5, #00B894); }
+        .avatar-2 { background: linear-gradient(135deg, #8B7CF6, #A78BFA); }
+        .avatar-3 { background: linear-gradient(135deg, #F472B6, #FB7185); }
+        
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .badge-success { background: rgba(0, 217, 165, 0.15); color: #00D9A5; }
+        .badge-warning { background: rgba(251, 113, 133, 0.15); color: #FB7185; }
+        .badge-info { background: rgba(139, 124, 246, 0.15); color: #8B7CF6; }
+        
+        .countdown {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.5px;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: #16162A;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 480px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+        
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: rgba(0, 217, 165, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+        }
+        
+        @media (max-width: 1200px) {
+            .file-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        
+        @media (max-width: 768px) {
+            .file-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        .file-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .file-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(0, 217, 165, 0.2);
+        }
+        
+        .file-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 20px;
+        }
+        
+        .file-icon-doc { background: linear-gradient(135deg, rgba(0, 217, 165, 0.2), rgba(0, 217, 165, 0.1)); color: #00D9A5; }
+        .file-icon-zip { background: linear-gradient(135deg, rgba(139, 124, 246, 0.2), rgba(139, 124, 246, 0.1)); color: #8B7CF6; }
+        .file-icon-img { background: linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(244, 114, 182, 0.1)); color: #F472B6; }
+        .file-icon-vid { background: linear-gradient(135deg, rgba(251, 113, 133, 0.2), rgba(251, 113, 133, 0.1)); color: #FB7185; }
+        .file-icon-aud { background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(96, 165, 250, 0.1)); color: #60A5FA; }
+        .file-icon-app { background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.1)); color: #FBBF24; }
+        
+        .vip-warning {
+            background: rgba(251, 113, 133, 0.08);
+            border: 2px solid rgba(251, 113, 133, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        
+        .message-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .message-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab-active {
+            background: linear-gradient(135deg, rgba(0, 217, 165, 0.15), rgba(139, 124, 246, 0.15));
+            border: 1px solid rgba(0, 217, 165, 0.3);
+        }
+    </style>
+</head>
+<body class="text-white">
+    <header class="fixed top-0 left-0 right-0 z-50 px-6 py-4" style="background: rgba(15, 15, 26, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #00D9A5, #8B7CF6);">
+                    <i class="fa fa-star text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-semibold text-white">虾看看</h1>
+                    <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">QQ社交聚合平台</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-8">
+                <div class="flex items-center gap-2 text-sm" style="color: rgba(255, 255, 255, 0.5);">
+                    <i class="fa fa-refresh"></i>
+                    <span>数据每日00:00清零</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm" style="color: rgba(255, 255, 255, 0.5);">下次刷新</span>
+                    <span id="countdown" class="countdown font-semibold" style="color: #00D9A5;"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 pt-28 pb-16">
+        <section class="mb-10">
+            <h2 class="section-title">核心数据</h2>
+            <div class="grid grid-cols-5 gap-4">
+                <div class="card stat-card p-5 cursor-pointer">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: rgba(0, 217, 165, 0.15);">
+                            <i class="fa fa-users" style="color: #00D9A5;"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs mb-1" style="color: rgba(255, 255, 255, 0.5);">今日动态好友</p>
+                            <p class="stat-number">24</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card stat-card p-5 cursor-pointer">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: rgba(139, 124, 246, 0.15);">
+                            <i class="fa fa-at" style="color: #8B7CF6;"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs mb-1" style="color: rgba(255, 255, 255, 0.5);">提及我的动态</p>
+                            <p class="stat-number">8</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card stat-card p-5 cursor-pointer">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: rgba(244, 114, 182, 0.15);">
+                            <i class="fa fa-file" style="color: #F472B6;"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs mb-1" style="color: rgba(255, 255, 255, 0.5);">今日文件</p>
+                            <p class="stat-number">32</p>
+                            <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">已收28/待收4</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card stat-card p-5 cursor-pointer">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: rgba(0, 217, 165, 0.15);">
+                            <i class="fa fa-thumbs-up" style="color: #00D9A5;"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs mb-1" style="color: rgba(255, 255, 255, 0.5);">主页获赞</p>
+                            <p class="stat-number">156</p>
+                            <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">今日+12</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card stat-card p-5 cursor-pointer">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: rgba(139, 124, 246, 0.15);">
+                            <i class="fa fa-bell" style="color: #8B7CF6;"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs mb-1" style="color: rgba(255, 255, 255, 0.5);">@我次数</p>
+                            <p class="stat-number">23</p>
+                            <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">今日+5</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-10">
+            <h2 class="section-title">空间动态</h2>
+            <div class="grid grid-cols-4 gap-4">
+                <div class="card p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 217, 165, 0.15);">
+                                <i class="fa fa-heart" style="color: #00D9A5;"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-white">亲友</h3>
+                                <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">28人</p>
+                            </div>
+                        </div>
+                        <span class="badge badge-success">今日5条</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="avatar avatar-1">李</div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium">李小明</p>
+                                    <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">10:23</p>
+                                </div>
+                            </div>
+                            <p class="text-sm" style="color: rgba(255, 255, 255, 0.7);">今天天气真好，一起去爬山吧！</p>
+                            <div class="flex gap-3 mt-2">
+                                <button class="text-xs" style="color: #00D9A5;"><i class="fa fa-thumbs-up mr-1"></i>赞</button>
+                                <button class="text-xs" style="color: rgba(255, 255, 255, 0.4);"><i class="fa fa-comment mr-1"></i>评</button>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="avatar avatar-2">王</div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium">王小花</p>
+                                    <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">09:15</p>
+                                </div>
+                            </div>
+                            <p class="text-sm" style="color: rgba(255, 255, 255, 0.7);">分享一组美食照片，大家来看看吧！</p>
+                            <div class="flex gap-3 mt-2">
+                                <button class="text-xs" style="color: #00D9A5;"><i class="fa fa-thumbs-up mr-1"></i>赞</button>
+                                <button class="text-xs" style="color: rgba(255, 255, 255, 0.4);"><i class="fa fa-comment mr-1"></i>评</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(139, 124, 246, 0.15);">
+                                <i class="fa fa-graduation-cap" style="color: #8B7CF6;"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-white">同学</h3>
+                                <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">45人</p>
+                            </div>
+                        </div>
+                        <span class="badge badge-info">今日8条</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="avatar avatar-3">张</div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium">张三</p>
+                                    <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">11:45</p>
+                                </div>
+                            </div>
+                            <p class="text-sm" style="color: rgba(255, 255, 255, 0.7);">期末复习资料已分享到群里！</p>
+                            <div class="flex gap-3 mt-2">
+                                <button class="text-xs" style="color: #00D9A5;"><i class="fa fa-thumbs-up mr-1"></i>赞</button>
+                                <button class="text-xs" style="color: rgba(255, 255, 255, 0.4);"><i class="fa fa-comment mr-1"></i>评</button>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="avatar avatar-1">刘</div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium">刘芳</p>
+                                    <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">10:30</p>
+                                </div>
+                            </div>
+                            <p class="text-sm" style="color: rgba(255, 255, 255, 0.7);">班级聚会时间定了，大家报名！</p>
+                            <div class="flex gap-3 mt-2">
+                                <button class="text-xs" style="color: #00D9A5;"><i class="fa fa-thumbs-up mr-1"></i>赞</button>
+                                <button class="text-xs" style="color: rgba(255, 255, 255, 0.4);"><i class="fa fa-comment mr-1"></i>评</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(244, 114, 182, 0.15);">
+                                <i class="fa fa-user" style="color: #F472B6;"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-white">好友</h3>
+                                <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">67人</p>
+                            </div>
+                        </div>
+                        <span class="badge badge-warning">今日12条</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="avatar avatar-2">陈</div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium">陈杰</p>
+                                    <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">14:20</p>
+                                </div>
+                            </div>
+                            <p class="text-sm" style="color: rgba(255, 255, 255, 0.7);">新入手的游戏真好玩，推荐！</p>
+                            <div class="flex gap-3 mt-2">
+                                <button class="text-xs" style="color: #00D9A5;"><i class="fa fa-thumbs-up mr-1"></i>赞</button>
+                                <button class="text-xs" style="color: rgba(255, 255, 255, 0.4);"><i class="fa fa-comment mr-1"></i>评</button>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="avatar avatar-3">赵</div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium">赵静</p>
+                                    <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">13:15</p>
+                                </div>
+                            </div>
+                            <p class="text-sm" style="color: rgba(255, 255, 255, 0.7);">今天去了一个超美的地方！</p>
+                            <div class="flex gap-3 mt-2">
+                                <button class="text-xs" style="color: #00D9A5;"><i class="fa fa-thumbs-up mr-1"></i>赞</button>
+                                <button class="text-xs" style="color: rgba(255, 255, 255, 0.4);"><i class="fa fa-comment mr-1"></i>评</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 217, 165, 0.15);">
+                                <i class="fa fa-users" style="color: #00D9A5;"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-white">群友</h3>
+                                <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">156人</p>
+                            </div>
+                        </div>
+                        <span class="badge badge-success">今日20条</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="avatar avatar-1">孙</div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium">孙悟空</p>
+                                    <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">15:30</p>
+                                </div>
+                            </div>
+                            <p class="text-sm" style="color: rgba(255, 255, 255, 0.7);">【游戏群】今晚8点开黑！</p>
+                            <div class="flex gap-3 mt-2">
+                                <button class="text-xs" style="color: #00D9A5;"><i class="fa fa-thumbs-up mr-1"></i>赞</button>
+                                <button class="text-xs" style="color: rgba(255, 255, 255, 0.4);"><i class="fa fa-comment mr-1"></i>评</button>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.03);">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="avatar avatar-2">猪</div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium">猪八戒</p>
+                                    <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">14:45</p>
+                                </div>
+                            </div>
+                            <p class="text-sm" style="color: rgba(255, 255, 255, 0.7);">【美食群】推荐一家餐厅！</p>
+                            <div class="flex gap-3 mt-2">
+                                <button class="text-xs" style="color: #00D9A5;"><i class="fa fa-thumbs-up mr-1"></i>赞</button>
+                                <button class="text-xs" style="color: rgba(255, 255, 255, 0.4);"><i class="fa fa-comment mr-1"></i>评</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-10">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="section-title mb-0">文件管理</h2>
+                <div class="flex gap-3">
+                    <button class="btn-primary" onclick="showToast('正在接收4个待收文件，分别来自3个群、1位好友')">
+                        <i class="fa fa-download mr-2"></i>一键接收
+                    </button>
+                    <button class="btn-secondary" onclick="showPathModal()">
+                        <i class="fa fa-folder mr-2"></i>路径设置
+                    </button>
+                </div>
+            </div>
+            <div class="card p-5">
+                <div class="mb-5">
+                    <input type="text" placeholder="搜索文件..." class="input-field" style="max-width: 320px;">
+                </div>
+                <div class="file-grid">
+                    <div class="file-item">
+                        <div class="file-icon file-icon-doc"><i class="fa fa-file-word-o"></i></div>
+                        <p class="font-medium text-white mb-1">文档</p>
+                        <p class="text-sm mb-1" style="color: rgba(255, 255, 255, 0.5);">12个</p>
+                        <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">24.5MB</p>
+                        <p class="text-xs mt-2" style="color: #00D9A5;">设计群、学习群</p>
+                    </div>
+                    <div class="file-item">
+                        <div class="file-icon file-icon-zip"><i class="fa fa-file-archive-o"></i></div>
+                        <p class="font-medium text-white mb-1">压缩包</p>
+                        <p class="text-sm mb-1" style="color: rgba(255, 255, 255, 0.5);">5个</p>
+                        <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">128MB</p>
+                        <p class="text-xs mt-2" style="color: #8B7CF6;">游戏群、工作群</p>
+                    </div>
+                    <div class="file-item">
+                        <div class="file-icon file-icon-img"><i class="fa fa-file-image-o"></i></div>
+                        <p class="font-medium text-white mb-1">图片</p>
+                        <p class="text-sm mb-1" style="color: rgba(255, 255, 255, 0.5);">28个</p>
+                        <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">67.8MB</p>
+                        <p class="text-xs mt-2" style="color: #F472B6;">亲友、同学</p>
+                    </div>
+                    <div class="file-item">
+                        <div class="file-icon file-icon-vid"><i class="fa fa-file-video-o"></i></div>
+                        <p class="font-medium text-white mb-1">视频</p>
+                        <p class="text-sm mb-1" style="color: rgba(255, 255, 255, 0.5);">3个</p>
+                        <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">256MB</p>
+                        <p class="text-xs mt-2" style="color: #FB7185;">好友、社团群</p>
+                    </div>
+                    <div class="file-item">
+                        <div class="file-icon file-icon-aud"><i class="fa fa-file-audio-o"></i></div>
+                        <p class="font-medium text-white mb-1">音频</p>
+                        <p class="text-sm mb-1" style="color: rgba(255, 255, 255, 0.5);">7个</p>
+                        <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">18.2MB</p>
+                        <p class="text-xs mt-2" style="color: #60A5FA;">音乐群、好友</p>
+                    </div>
+                    <div class="file-item">
+                        <div class="file-icon file-icon-app"><i class="fa fa-android"></i></div>
+                        <p class="font-medium text-white mb-1">安装包</p>
+                        <p class="text-sm mb-1" style="color: rgba(255, 255, 255, 0.5);">4个</p>
+                        <p class="text-xs" style="color: rgba(255, 255, 255, 0.3);">320MB</p>
+                        <p class="text-xs mt-2" style="color: #FBBF24;">游戏群、技术群</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-10">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="section-title mb-0">点赞互动</h2>
+                <button class="btn-primary" onclick="showToast('已为所有点赞好友回赞')">
+                    <i class="fa fa-thumbs-up mr-2"></i>一键回赞
+                </button>
+            </div>
+            <div class="card p-5">
+                <div class="flex gap-8 mb-6">
+                    <div>
+                        <p class="text-sm mb-1" style="color: rgba(255, 255, 255, 0.5);">主页累计点赞</p>
+                        <p class="stat-number">156</p>
+                    </div>
+                    <div>
+                        <p class="text-sm mb-1" style="color: rgba(255, 255, 255, 0.5);">今日新增</p>
+                        <p class="stat-number">12</p>
+                    </div>
+                </div>
+                <h3 class="text-sm font-medium mb-4" style="color: rgba(255, 255, 255, 0.6);">最近点赞</h3>
+                <div class="space-y-3">
+                    <div class="message-item flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="avatar avatar-1">李</div>
+                            <div>
+                                <p class="font-medium">李小明</p>
+                                <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">10:23 · 点赞了你的动态</p>
+                            </div>
+                        </div>
+                        <button class="btn-secondary text-sm">查看动态</button>
+                    </div>
+                    <div class="message-item flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="avatar avatar-2">王</div>
+                            <div>
+                                <p class="font-medium">王小花</p>
+                                <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">09:15 · 点赞了你的照片</p>
+                            </div>
+                        </div>
+                        <button class="btn-secondary text-sm">查看动态</button>
+                    </div>
+                    <div class="message-item flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="avatar avatar-3">张</div>
+                            <div>
+                                <p class="font-medium">张三</p>
+                                <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">08:45 · 点赞了你的评论</p>
+                            </div>
+                        </div>
+                        <button class="btn-secondary text-sm">查看动态</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-10">
+            <h2 class="section-title">会员管理</h2>
+            <div class="card p-6">
+                <div class="flex items-start justify-between mb-6">
+                    <div class="flex gap-8">
+                        <div>
+                            <p class="text-sm mb-2" style="color: rgba(255, 255, 255, 0.5);">QQ等级</p>
+                            <div class="flex items-center gap-2">
+                                <i class="fa fa-star" style="color: #FBBF24;"></i>
+                                <span class="text-2xl font-bold text-white">28</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-sm mb-2" style="color: rgba(255, 255, 255, 0.5);">会员等级</p>
+                            <p class="text-xl font-bold" style="color: #00D9A5;">超级会员</p>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="showToast('跳转至QQ会员续费页面')">
+                        <i class="fa fa-refresh mr-2"></i>续费会员
+                    </button>
+                </div>
+                <div class="vip-warning mb-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm mb-1" style="color: rgba(255, 255, 255, 0.6);">会员有效期</p>
+                            <p class="text-xl font-bold" style="color: #FB7185;">2026-04-28 12:30:00</p>
+                            <p class="text-sm mt-1" style="color: #FB7185;">会员即将到期，请及时续费！</p>
+                        </div>
+                        <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, rgba(0, 217, 165, 0.2), rgba(139, 124, 246, 0.2));">
+                            <i class="fa fa-diamond text-2xl" style="color: #00D9A5;"></i>
+                        </div>
+                    </div>
+                </div>
+                <h3 class="text-sm font-medium mb-4" style="color: rgba(255, 255, 255, 0.6);">会员权益</h3>
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="p-4 rounded-xl" style="background: rgba(0, 217, 165, 0.08);">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: rgba(0, 217, 165, 0.15);">
+                            <i class="fa fa-bolt" style="color: #00D9A5;"></i>
+                        </div>
+                        <p class="font-medium text-white mb-1">文件传输加速</p>
+                        <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">高速传输大文件</p>
+                    </div>
+                    <div class="p-4 rounded-xl" style="background: rgba(139, 124, 246, 0.08);">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: rgba(139, 124, 246, 0.15);">
+                            <i class="fa fa-user-circle" style="color: #8B7CF6;"></i>
+                        </div>
+                        <p class="font-medium text-white mb-1">高清头像</p>
+                        <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">上传更高清头像</p>
+                    </div>
+                    <div class="p-4 rounded-xl" style="background: rgba(244, 114, 182, 0.08);">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: rgba(244, 114, 182, 0.15);">
+                            <i class="fa fa-cloud" style="color: #F472B6;"></i>
+                        </div>
+                        <p class="font-medium text-white mb-1">更多存储空间</p>
+                        <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">10GB云存储空间</p>
+                    </div>
+                    <div class="p-4 rounded-xl" style="background: rgba(251, 191, 36, 0.08);">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: rgba(251, 191, 36, 0.15);">
+                            <i class="fa fa-paint-brush" style="color: #FBBF24;"></i>
+                        </div>
+                        <p class="font-medium text-white mb-1">个性主题</p>
+                        <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">更多专属主题</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-10">
+            <h2 class="section-title">群消息提醒</h2>
+            <div class="grid grid-cols-3 gap-4 mb-5">
+                <div class="card p-5">
+                    <h3 class="font-medium text-white mb-3">群公告</h3>
+                    <div class="flex gap-6 mb-3">
+                        <div>
+                            <p class="stat-number">12</p>
+                            <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">总公告</p>
+                        </div>
+                        <div>
+                            <p class="stat-number" style="color: #FB7185;">3</p>
+                            <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">未读</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">设计群</span>
+                            <span class="badge badge-warning">1条未读</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">学习群</span>
+                            <span class="badge badge-warning">1条未读</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">工作群</span>
+                            <span class="badge badge-warning">1条未读</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-5">
+                    <h3 class="font-medium text-white mb-3">提及我的</h3>
+                    <div class="flex gap-6 mb-3">
+                        <div>
+                            <p class="stat-number">23</p>
+                            <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">总提及</p>
+                        </div>
+                        <div>
+                            <p class="stat-number">5</p>
+                            <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">今日</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">群聊</span>
+                            <span class="text-xs" style="color: rgba(255, 255, 255, 0.4);">18条</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">私人好友</span>
+                            <span class="text-xs" style="color: rgba(255, 255, 255, 0.4);">5条</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-5">
+                    <h3 class="font-medium text-white mb-3">@我消息</h3>
+                    <div class="flex gap-6 mb-3">
+                        <div>
+                            <p class="stat-number">45</p>
+                            <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">总@次数</p>
+                        </div>
+                        <div>
+                            <p class="stat-number">8</p>
+                            <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">今日</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">群聊</span>
+                            <span class="text-xs" style="color: rgba(255, 255, 255, 0.4);">32条</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">私人好友</span>
+                            <span class="text-xs" style="color: rgba(255, 255, 255, 0.4);">13条</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-5">
+                <h3 class="text-sm font-medium mb-4" style="color: rgba(255, 255, 255, 0.6);">最近@我的消息</h3>
+                <div class="space-y-3">
+                    <div class="message-item">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="avatar avatar-1">张</div>
+                            <div>
+                                <p class="font-medium">张三</p>
+                                <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">设计群 · 10:23</p>
+                            </div>
+                        </div>
+                        <p class="text-sm mb-3" style="color: rgba(255, 255, 255, 0.8);">@所有人 今天下午3点有设计讨论会，请大家准时参加！</p>
+                        <div class="flex justify-end">
+                            <button class="btn-secondary text-sm" onclick="showToast('消息已回复')">
+                                <i class="fa fa-reply mr-2"></i>回复
+                            </button>
+                        </div>
+                    </div>
+                    <div class="message-item">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="avatar avatar-2">李</div>
+                            <div>
+                                <p class="font-medium">李小明</p>
+                                <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">私人好友 · 09:15</p>
+                            </div>
+                        </div>
+                        <p class="text-sm mb-3" style="color: rgba(255, 255, 255, 0.8);">@你 明天一起去图书馆吗？</p>
+                        <div class="flex justify-end">
+                            <button class="btn-secondary text-sm" onclick="showToast('消息已回复')">
+                                <i class="fa fa-reply mr-2"></i>回复
+                            </button>
+                        </div>
+                    </div>
+                    <div class="message-item">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="avatar avatar-3">王</div>
+                            <div>
+                                <p class="font-medium">王小花</p>
+                                <p class="text-xs" style="color: rgba(255, 255, 255, 0.4);">学习群 · 08:45</p>
+                            </div>
+                        </div>
+                        <p class="text-sm mb-3" style="color: rgba(255, 255, 255, 0.8);">@你 作业写完了吗？可以借我参考一下吗？</p>
+                        <div class="flex justify-end">
+                            <button class="btn-secondary text-sm" onclick="showToast('消息已回复')">
+                                <i class="fa fa-reply mr-2"></i>回复
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="py-6 text-center text-sm" style="color: rgba(255, 255, 255, 0.3); border-top: 1px solid rgba(255, 255, 255, 0.05);">
+        <p>© 2026 虾看看 | 仅供学习演示使用</p>
+    </footer>
+
+    <div id="toast" class="toast">
+        <div class="flex items-center">
+            <div class="toast-icon">
+                <i class="fa fa-check text-white text-sm"></i>
+            </div>
+            <p id="toast-message" class="text-white font-medium"></p>
+        </div>
+    </div>
+
+    <div id="pathModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-xl font-semibold text-white mb-6">设置下载路径</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm mb-2" style="color: rgba(255, 255, 255, 0.6);">默认路径</label>
+                    <input type="text" value="D:\QQ文件\虾看看" class="input-field" readonly>
+                </div>
+                <div>
+                    <label class="block text-sm mb-2" style="color: rgba(255, 255, 255, 0.6);">自定义路径</label>
+                    <input type="text" placeholder="输入自定义路径" class="input-field">
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button class="btn-secondary" onclick="closePathModal()">取消</button>
+                    <button class="btn-primary" onclick="closePathModal(); showToast('下载路径设置成功')">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateCountdown() {
+            const now = new Date();
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            const diff = tomorrow - now;
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            document.getElementById('countdown').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        function showPathModal() {
+            document.getElementById('pathModal').classList.add('show');
+        }
+        
+        function closePathModal() {
+            document.getElementById('pathModal').classList.remove('show');
+        }
+        
+        document.getElementById('pathModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePathModal();
+            }
+        });
+    </script>
+</body>
+</html>
